@@ -22,13 +22,19 @@ import os
 import os.path as osp
 import pandas as pd
 
-_pad = "$"
-_punctuation = ';:,.!?¡¿—…"«»“” '
-_letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'
-_letters_ipa = "ɑɐɒæɓʙβɔɕçɗɖðʤəɘɚɛɜɝɞɟʄɡɠɢʛɦɧħɥʜɨɪʝɭɬɫɮʟɱɯɰŋɳɲɴøɵɸθœɶʘɹɺɾɻʀʁɽʂʃʈʧʉʊʋⱱʌɣɤʍχʎʏʑʐʒʔʡʕʢǀǁǂǃˈˌːˑʼʴʰʱʲʷˠˤ˞↓↑→↗↘'̩'ᵻ"
+#_pad = "$"
+#_punctuation = ';:,.!?¡¿—…"«»“” '
+#_letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'
+#_letters_ipa = "ɑɐɒæɓʙβɔɕçɗɖðʤəɘɚɛɜɝɞɟʄɡɠɢʛɦɧħɥʜɨɪʝɭɬɫɮʟɱɯɰŋɳɲɴøɵɸθœɶʘɹɺɾɻʀʁɽʂʃʈʧʉʊʋⱱʌɣɤʍχʎʏʑʐʒʔʡʕʢǀǁǂǃˈˌːˑʼʴʰʱʲʷˠˤ˞↓↑→↗↘'̩'ᵻ"
+
+symbols = ["<pad>","<sos>","<eos>","<unk>"," "]
+with open("s.txt") as sym:
+    lines = sym.readlines()
+    for l in lines:
+        symbols.append(l[0:-1])
 
 # Export all symbols:
-symbols = [_pad] + list(_punctuation) + list(_letters) + list(_letters_ipa)
+#symbols = [_pad] + list(_punctuation) + list(_letters) + list(_letters_ipa)
 
 dicts = {}
 for i in range(len((symbols))):
@@ -39,9 +45,13 @@ class TextCleaner:
         self.word_index_dictionary = dicts
     def __call__(self, text):
         indexes = []
-        for char in text:
+        segs = text.split(" ")
+        for char in segs:
             try:
                 indexes.append(self.word_index_dictionary[char])
+                if char[-1] in ['1','2','3','4','5']:
+                    #得把空格搞进去,方便对其
+                    indexes.append(self.word_index_dictionary[' '])
             except KeyError:
                 print(text)
         return indexes
@@ -116,7 +126,7 @@ class FilePathDataset(torch.utils.data.Dataset):
             wave = wave[:, 0].squeeze()
         if sr != 24000:
             wave = librosa.resample(wave, orig_sr=sr, target_sr=24000)
-            print(wave_path, sr)
+            #print(wave_path, sr)
             
         wave = np.concatenate([np.zeros([5000]), wave, np.zeros([5000])], axis=0)
         
