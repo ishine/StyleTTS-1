@@ -137,7 +137,7 @@ def main(config_path):
         iters = 0
         
         if config.get('first_stage_path', '') != '':
-            first_stage_path = osp.join(log_dir, config.get('first_stage_path', 'first_stage.pth'))
+            first_stage_path = osp.join(log_dir+"/../", config.get('first_stage_path', 'first_stage.pth'))
             print('Loading the first stage model at %s ...' % first_stage_path)
             model, optimizer, start_epoch, iters = load_checkpoint(model, optimizer, first_stage_path,
                                         load_only_params=True)
@@ -167,8 +167,8 @@ def main(config_path):
             texts, input_lengths, mels, mel_input_length = batch
 
             with torch.no_grad():
-                mask = length_to_mask(mel_input_length // (2 ** model.text_aligner.n_down)).to('cuda')
-                mel_mask = length_to_mask(mel_input_length).to('cuda')
+                mask = length_to_mask(mel_input_length // (2 ** model.text_aligner.n_down)).to(device)
+                mel_mask = length_to_mask(mel_input_length).to(device)
                 text_mask = length_to_mask(input_lengths).to(texts.device)
 
                 _, _, s2s_attn_feat = model.text_aligner(mels, mask, texts)
@@ -223,8 +223,8 @@ def main(config_path):
 
                 mel_input_length = torch.floor(ts.scale * mel_input_length) // 2 * 2 
 
-                mask = length_to_mask(mel_input_length // (2 ** model.text_aligner.n_down)).to('cuda')
-                mel_mask = length_to_mask(mel_input_length).to('cuda')
+                mask = length_to_mask(mel_input_length // (2 ** model.text_aligner.n_down)).to(device)
+                mel_mask = length_to_mask(mel_input_length).to(device)
                 text_mask = length_to_mask(input_lengths).to(texts.device)
                 
                 # might have misalignment due to random scaling
@@ -372,7 +372,7 @@ def main(config_path):
                 batch = [b.to(device) for b in batch]
                 texts, input_lengths, mels, mel_input_length = batch
                 with torch.no_grad():
-                    mask = length_to_mask(mel_input_length // (2 ** model.text_aligner.n_down)).to('cuda')
+                    mask = length_to_mask(mel_input_length // (2 ** model.text_aligner.n_down)).to(device)
                     text_mask = length_to_mask(input_lengths).to(texts.device)
 
                     _, _, s2s_attn_feat = model.text_aligner(mels, mask, texts)
